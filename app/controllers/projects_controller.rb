@@ -16,6 +16,7 @@ class ProjectsController < ApplicationController
                                           :followed_index
                                           ]
 
+  $SAFE = 1
   def new
     @project = Project.new
   end
@@ -291,12 +292,15 @@ class ProjectsController < ApplicationController
   end
 
   def file_delete
-    file = File.join @project.satellitedir, params[:image_name]
-    FileUtils.rm file if File.exists? file
-    satellite_delete @project.satelliterepo, params[:image_name]
-    @project.pushtobare
-    flash[:notice] = "#{params[:image_name]} has been deleted!"
-    redirect_to @project.urlbase
+    if params[:image_name] =~ "^[\w\-. ]+$"
+      params[:image_name].untaint
+      file = File.join @project.satellitedir, params[:image_name]
+      FileUtils.rm file if File.exists? file
+      satellite_delete @project.satelliterepo, params[:image_name]
+      @project.pushtobare
+      flash[:notice] = "#{params[:image_name]} has been deleted!"
+      redirect_to @project.urlbase
+    end
   end
 
   def open
